@@ -1,0 +1,133 @@
+Description: Upstream changes introduced in version 6.0.1-2
+ This patch has been created by dpkg-source during the package build.
+ Here's the last changelog entry, hopefully it gives details on why
+ those changes were made:
+ .
+ libnet-snmp-perl (6.0.1-2) unstable; urgency=low
+ .
+   * Replace Digest:SHA1 by Digest:SHA (Closes: #636857)
+ .
+ The person named in the Author field signed this changelog entry.
+Author: Jochen Friedrich <jochen@scram.de>
+Bug-Debian: http://bugs.debian.org/636857
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+Index: libnet-snmp-perl-6.0.1/Build.PL
+===================================================================
+--- libnet-snmp-perl-6.0.1.orig/Build.PL	2011-08-24 17:36:51.000000000 +0200
++++ libnet-snmp-perl-6.0.1/Build.PL	2011-08-24 17:36:55.000000000 +0200
+@@ -37,7 +37,6 @@
+    recommends         => {
+       Crypt::DES      => '2.03',  # SNMPv3
+       Digest::MD5     => '2.11',  # SNMPv3
+-      Digest::SHA1    => '1.02',  # SNMPv3
+       Digest::HMAC    => '1.00',  # SNMPv3
+       Crypt::Rijndael => '1.02',  # SNMPv3 - AES Cipher Algorithm 
+       Socket6         => '0.23',  # UDP/IPv6 or TCP/IPv6 Transport Domain 
+Index: libnet-snmp-perl-6.0.1/Makefile.PL
+===================================================================
+--- libnet-snmp-perl-6.0.1.orig/Makefile.PL	2011-08-24 17:36:51.000000000 +0200
++++ libnet-snmp-perl-6.0.1/Makefile.PL	2011-08-24 17:36:55.000000000 +0200
+@@ -40,7 +40,6 @@
+       Math::BigInt => 0,
+       Crypt::DES   => '2.03',  # SNMPv3
+       Digest::MD5  => '2.11',  # SNMPv3
+-      Digest::SHA1 => '1.02',  # SNMPv3
+       Digest::HMAC => '1.00',  # SNMPv3
+    },
+    dist          => {
+Index: libnet-snmp-perl-6.0.1/META.yml
+===================================================================
+--- libnet-snmp-perl-6.0.1.orig/META.yml	2011-08-24 17:36:51.000000000 +0200
++++ libnet-snmp-perl-6.0.1/META.yml	2011-08-24 17:36:55.000000000 +0200
+@@ -63,7 +63,6 @@
+   Crypt::Rijndael: 1.02
+   Digest::HMAC: 1.00
+   Digest::MD5: 2.11
+-  Digest::SHA1: 1.02
+   Socket6: 0.23
+ requires:
+   Carp: 0
+Index: libnet-snmp-perl-6.0.1/lib/Net/SNMP.pm
+===================================================================
+--- libnet-snmp-perl-6.0.1.orig/lib/Net/SNMP.pm	2011-08-24 17:36:51.000000000 +0200
++++ libnet-snmp-perl-6.0.1/lib/Net/SNMP.pm	2011-08-24 17:36:55.000000000 +0200
+@@ -3550,7 +3550,7 @@
+ 
+ =item *
+ 
+-The non-core modules F<Crypt::DES>, F<Digest::MD5>, F<Digest::SHA1>, and 
++The non-core modules F<Crypt::DES>, F<Digest::MD5>, and 
+ F<Digest::HMAC> are required to support SNMPv3. 
+ 
+ =item *
+Index: libnet-snmp-perl-6.0.1/lib/Net/SNMP/Security/USM.pm
+===================================================================
+--- libnet-snmp-perl-6.0.1.orig/lib/Net/SNMP/Security/USM.pm	2011-08-24 17:36:51.000000000 +0200
++++ libnet-snmp-perl-6.0.1/lib/Net/SNMP/Security/USM.pm	2011-08-24 17:36:55.000000000 +0200
+@@ -25,7 +25,7 @@
+ 
+ use Crypt::DES();
+ use Digest::MD5();
+-use Digest::SHA1();
++use Digest::SHA();
+ use Digest::HMAC();
+ 
+ ## Version of the Net::SNMP::Security::USM module
+@@ -1146,7 +1146,7 @@
+    } elsif ($this->{_auth_protocol} eq AUTH_PROTOCOL_HMACSHA) {
+ 
+       $this->{_auth_data} =
+-         Digest::HMAC->new($this->{_auth_key}, 'Digest::SHA1');
++         Digest::HMAC->new($this->{_auth_key}, 'Digest::SHA');
+ 
+    } else {
+ 
+@@ -1391,7 +1391,7 @@
+    if ($this->{_auth_protocol} eq AUTH_PROTOCOL_HMACMD5) {
+       $this->{_priv_data}->{hash} = Digest::MD5->new();
+    } elsif ($this->{_auth_protocol} eq AUTH_PROTOCOL_HMACSHA) {
+-      $this->{_priv_data}->{hash} = Digest::SHA1->new();
++      $this->{_priv_data}->{hash} = Digest::SHA->new();
+    }
+ 
+    return TRUE;
+@@ -1626,7 +1626,7 @@
+    my $key_len =
+    {
+       AUTH_PROTOCOL_HMACMD5,    [ 16, 'HMAC-MD5'  ],
+-      AUTH_PROTOCOL_HMACSHA,    [ 20, 'HMAC-SHA1' ],
++      AUTH_PROTOCOL_HMACSHA,    [ 20, 'HMAC-SHA' ],
+    };
+ 
+    if (!exists $key_len->{$this->{_auth_protocol}}) {
+@@ -1681,7 +1681,7 @@
+       if ($this->{_auth_protocol} eq AUTH_PROTOCOL_HMACMD5) {
+          $hnnn = Digest::MD5->new();
+       } elsif ($this->{_auth_protocol} eq AUTH_PROTOCOL_HMACSHA) {
+-         $hnnn = Digest::SHA1->new();
++         $hnnn = Digest::SHA->new();
+       } else {
+          return $this->_error(
+             'The authProtocol "%s" is unknown', $this->{_auth_protocol}
+@@ -1783,7 +1783,7 @@
+    my $digests =
+    {
+       AUTH_PROTOCOL_HMACMD5,  'Digest::MD5',
+-      AUTH_PROTOCOL_HMACSHA,  'Digest::SHA1',
++      AUTH_PROTOCOL_HMACSHA,  'Digest::SHA',
+    };
+ 
+    if (!exists $digests->{$this->{_auth_protocol}}) {
